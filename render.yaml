@@ -18,8 +18,5 @@ services:
         sync: false
       - key: APP_HOST
         sync: false
-      - key: SOLID_QUEUE_IN_PUMA
-        value: "true"
-
 databases:
   - name: salary-management-db
