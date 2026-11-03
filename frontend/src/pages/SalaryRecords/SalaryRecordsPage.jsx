@@ -1,5 +1,6 @@
 import { CircleDollarSign } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import DataTable from '../../components/common/DataTable'
 import EmptyState from '../../components/common/EmptyState'
 import ErrorState from '../../components/common/ErrorState'
@@ -13,7 +14,8 @@ import { getEmployees } from '../../services/employeeService'
 import { getEmployeeSalaryRecords } from '../../services/salaryRecordService'
 
 export default function SalaryRecordsPage() {
-  const [employeeId, setEmployeeId] = useState('')
+  const [searchParams] = useSearchParams()
+  const [employeeId, setEmployeeId] = useState(() => searchParams.get('employee') || '')
   const [page, setPage] = useState(1)
   const employeesState = useAsync(() => getEmployees({ per_page: 100 }))
   const recordsState = useAsync(() => employeeId ? getEmployeeSalaryRecords(employeeId, { page, per_page: 10 }) : Promise.resolve(null), `${employeeId}:${page}`)

@@ -4,6 +4,8 @@ import CountriesPage from './pages/Countries/CountriesPage'
 import DashboardPage from './pages/Dashboard/DashboardPage'
 import DepartmentsPage from './pages/Departments/DepartmentsPage'
 import EmployeesPage from './pages/Employees/EmployeesPage'
+import EmployeeDetailsPage from './pages/Employees/EmployeeDetailsPage'
+import EmployeeEditorPage from './pages/Employees/EmployeeEditorPage'
 import SalaryRecordsPage from './pages/SalaryRecords/SalaryRecordsPage'
 
 function App() {
@@ -14,6 +16,9 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="employees" element={<EmployeesPage />} />
+          <Route path="employees/new" element={<EmployeeEditorPage />} />
+          <Route path="employees/:id/edit" element={<EmployeeEditorPage />} />
+          <Route path="employees/:id" element={<EmployeeDetailsPage />} />
           <Route path="salary-records" element={<SalaryRecordsPage />} />
           <Route path="countries" element={<CountriesPage />} />
           <Route path="departments" element={<DepartmentsPage />} />

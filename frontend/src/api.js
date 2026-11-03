@@ -25,4 +25,16 @@ export function getApiErrorMessage(error) {
   return 'Something went wrong while loading this data.'
 }
 
+export function getApiValidationErrors(error) {
+  const firstError = error.response?.data?.errors?.[0]
+  if (!firstError || typeof firstError !== 'object') return {}
+
+  return Object.fromEntries(
+    Object.entries(firstError).map(([field, messages]) => [
+      field,
+      Array.isArray(messages) ? messages.join(', ') : String(messages),
+    ]),
+  )
+}
+
 export default api
