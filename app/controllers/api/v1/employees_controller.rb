@@ -86,9 +86,12 @@ module Api
       end
 
       def filter_by_association(scope, association, value)
-        reflection = Employee.reflect_on_association(association)
-        return scope.where("#{association}_id" => value) if value.to_s.match?(/\A\d+\z/)
+        if value.to_s.match?(/\A\d+\z/)
+          return scope.where(country_id: value) if association == :country
+          return scope.where(department_id: value) if association == :department
+        end
 
+        reflection = Employee.reflect_on_association(association)
         table = reflection.klass.arel_table
         escaped_value = Employee.sanitize_sql_like(value.to_s)
         columns = association == :country ? %i[code name] : %i[name]
