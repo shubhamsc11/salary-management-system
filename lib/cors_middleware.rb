@@ -19,7 +19,14 @@ class CorsMiddleware
   private
 
   def allowed_origin?(origin)
-    origin && !origin.empty? && origin == ENV["FRONTEND_URL"].to_s.chomp("/")
+    request_origin = normalize_origin(origin)
+    configured_origin = normalize_origin(ENV["FRONTEND_URL"])
+
+    !request_origin.empty? && !configured_origin.empty? && request_origin == configured_origin
+  end
+
+  def normalize_origin(origin)
+    origin.to_s.strip.chomp("/")
   end
 
   def cors_headers(origin)

@@ -15,11 +15,8 @@ services:
       - key: RAILS_MASTER_KEY
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://salary-management-system-beryl.vercel.app
       - key: APP_HOST
         sync: false
-      - key: SOLID_QUEUE_IN_PUMA
-        value: "true"
-
 databases:
   - name: salary-management-db
