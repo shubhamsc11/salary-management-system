@@ -3,13 +3,13 @@ require "simplecov"
 SimpleCov.start "rails" do
   enable_coverage :branch
 
-  add_filter "/spec/"
-  add_filter "/config/"
-  add_filter "/db/"
+  skip "/spec/"
+  skip "/config/"
+  skip "/db/"
 
-  add_group "Models", "app/models"
-  add_group "Controllers", "app/controllers"
-  add_group "Services", "app/services"
+  group "Models", "app/models"
+  group "Controllers", "app/controllers"
+  group "Services", "app/services"
 
   minimum_coverage line: 80
 end
