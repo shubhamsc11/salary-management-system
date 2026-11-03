@@ -17,12 +17,13 @@ import Select from '../../components/common/Select'
 import StatusBadge from '../../components/common/StatusBadge'
 import { getApiErrorMessage } from '../../api'
 import useAsync from '../../hooks/useAsync'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { getCountries } from '../../services/countryService'
 import { deactivateEmployee, getEmployees } from '../../services/employeeService'
 import { getDepartments } from '../../services/departmentService'
 
 export default function EmployeesPage() {
-  const [search, setSearch] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [country, setCountry] = useState('')
   const [department, setDepartment] = useState('')
   const [status, setStatus] = useState('')
@@ -33,6 +34,7 @@ export default function EmployeesPage() {
   const [confirmEmployee, setConfirmEmployee] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [notice, setNotice] = useState(null)
+  const search = useDebouncedValue(searchTerm)
 
   const query = { search, country, department, status, sort, order, page, per_page: 10 }
   const { data: response, loading, error, retry } = useAsync(() => getEmployees(query), JSON.stringify(query))
@@ -91,11 +93,11 @@ export default function EmployeesPage() {
     {notice && <div className={`mb-5 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`} role="status"><span className="flex items-center gap-2">{notice.type === 'success' && <CheckCircle2 size={17} />}{notice.message}</span><button type="button" onClick={() => setNotice(null)} aria-label="Dismiss notification"><X size={16} /></button></div>}
     <SectionCard title="Employee directory" description="Search, filter, sort and review employee records.">
       <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Input id="employee-search" label="Search" placeholder="Name, email or code..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
+        <Input id="employee-search" label="Search" placeholder="Name, email or code..." value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setPage(1) }} />
         <Select id="employee-country" label="Country" value={country} onChange={(event) => { setCountry(event.target.value); setPage(1) }} options={[{ value: '', label: filtersLoading ? 'Loading countries...' : 'All countries' }, ...countries.map((item) => ({ value: item.id, label: item.name }))]} />
         <Select id="employee-department" label="Department" value={department} onChange={(event) => { setDepartment(event.target.value); setPage(1) }} options={[{ value: '', label: filtersLoading ? 'Loading departments...' : 'All departments' }, ...departments.map((item) => ({ value: item.id, label: item.name }))]} />
         <Select id="employee-status" label="Status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1) }} options={[{ value: '', label: 'All statuses' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
-        <div className="flex items-end"><Button type="button" variant="secondary" className="w-full" onClick={() => { setSearch(''); setCountry(''); setDepartment(''); setStatus(''); setPage(1) }}><Filter size={16} /> Clear filters</Button></div>
+        <div className="flex items-end"><Button type="button" variant="secondary" className="w-full" onClick={() => { setSearchTerm(''); setCountry(''); setDepartment(''); setStatus(''); setPage(1) }}><Filter size={16} /> Clear filters</Button></div>
       </div>
       {filtersError && <div className="border-b border-amber-100 bg-amber-50 px-5 py-3 text-xs text-amber-700">Filter options could not load. <button type="button" className="font-semibold underline" onClick={retryFilters}>Retry</button></div>}
       {loading ? <LoadingSpinner label="Loading employees..." /> : error ? <ErrorState message={error} onRetry={retry} /> : <DataTable rows={rows} onSort={handleSort} sortKey={sort} sortOrder={order} empty={<EmptyState title="No employees found" description={search || country || department || status ? 'Try changing your search or filters.' : 'Employee records from the API will appear here.'} />} columns={columns} />}

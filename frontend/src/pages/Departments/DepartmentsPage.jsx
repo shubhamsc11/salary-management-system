@@ -1,19 +1,37 @@
+import { CheckCircle2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import ResourceForm from '../../components/forms/ResourceForm'
+import Button from '../../components/common/Button'
+import ConfirmationDialog from '../../components/common/ConfirmationDialog'
 import DataTable from '../../components/common/DataTable'
 import EmptyState from '../../components/common/EmptyState'
 import ErrorState from '../../components/common/ErrorState'
 import Input from '../../components/common/Input'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
+import Modal from '../../components/common/Modal'
 import PageHeader from '../../components/common/PageHeader'
 import Pagination from '../../components/common/Pagination'
 import SectionCard from '../../components/common/SectionCard'
+import { getApiErrorMessage } from '../../api'
 import useAsync from '../../hooks/useAsync'
-import { getDepartments } from '../../services/departmentService'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+import { createDepartment, deleteDepartment, getDepartments, updateDepartment } from '../../services/departmentService'
 
 export default function DepartmentsPage() {
-  const [search, setSearch] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
-  const { data: response, loading, error, retry } = useAsync(() => getDepartments({ search, page, per_page: 10 }), `${search}:${page}`)
+  const [formDepartment, setFormDepartment] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [notice, setNotice] = useState(null)
+  const search = useDebouncedValue(searchTerm)
+  const query = { search, page, per_page: 10 }
+  const { data: response, loading, error, retry } = useAsync(() => getDepartments(query), JSON.stringify(query))
   const rows = response?.data || []
-  return <div><PageHeader title="Departments" description="Organize employees by the teams and functions they support." /><SectionCard title="Department directory" description="Search existing department records."><div className="border-b border-slate-100 p-4"><Input id="department-search" placeholder="Search departments..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} /></div>{loading ? <LoadingSpinner label="Loading departments..." /> : error ? <ErrorState message={error} onRetry={retry} /> : <DataTable rows={rows} empty={<EmptyState title="No departments found" />} columns={[{ key: 'name', label: 'Department', render: (row) => <span className="font-semibold text-slate-800">{row.name}</span> }, { key: 'id', label: 'Reference', render: (row) => <span className="font-mono text-xs text-slate-400">#{row.id}</span> }]} />}{!loading && !error && <Pagination meta={response?.meta} onPageChange={setPage} />}</SectionCard></div>
+  function handleSaved(department) { setFormDepartment(null); setNotice({ type: 'success', message: `${department.name} was ${formDepartment?.id ? 'updated' : 'added'} successfully.` }); retry() }
+  async function handleDelete() { if (!deleteTarget) return; setActionLoading(true); try { await deleteDepartment(deleteTarget.id); setDeleteTarget(null); setNotice({ type: 'success', message: 'Department deleted successfully.' }); retry() } catch (requestError) { setNotice({ type: 'error', message: getApiErrorMessage(requestError) }) } finally { setActionLoading(false) } }
+  const columns = [{ key: 'name', label: 'Department', render: (row) => <span className="font-semibold text-slate-800">{row.name}</span> }, { key: 'id', label: 'Reference', render: (row) => <span className="font-mono text-xs text-slate-400">#{row.id}</span> }, { key: 'actions', label: 'Actions', render: (row) => <div className="flex gap-1"><button type="button" onClick={() => setFormDepartment(row)} className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600" aria-label={`Edit ${row.name}`}><Pencil size={16} /></button><button type="button" onClick={() => setDeleteTarget(row)} className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label={`Delete ${row.name}`}><Trash2 size={16} /></button></div> }]
+  return <div><PageHeader title="Departments" description="Organize employees by the teams and functions they support." action={<Button onClick={() => setFormDepartment({})}><Plus size={17} /> Add department</Button>} />{notice && <Notice notice={notice} onClose={() => setNotice(null)} />}<SectionCard title="Department directory" description="Search and maintain department reference data."><div className="border-b border-slate-100 p-4"><Input id="department-search" label="Search" placeholder="Search departments..." value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setPage(1) }} /></div>{loading ? <LoadingSpinner label="Loading departments..." /> : error ? <ErrorState message={error} onRetry={retry} /> : <DataTable rows={rows} empty={<EmptyState title="No departments found" />} columns={columns} />}{!loading && !error && <Pagination meta={response?.meta} onPageChange={setPage} />}</SectionCard><Modal open={Boolean(formDepartment)} title={formDepartment?.id ? 'Edit department' : 'Add department'} onClose={() => setFormDepartment(null)}><ResourceForm type="department" resource={formDepartment?.id ? formDepartment : null} onCancel={() => setFormDepartment(null)} onSaved={handleSaved} createResource={createDepartment} updateResource={updateDepartment} /></Modal><ConfirmationDialog open={Boolean(deleteTarget)} title="Delete department?" description={`Deleting ${deleteTarget?.name || 'this department'} is only allowed when no employees are associated with it.`} onCancel={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={actionLoading} /></div>
 }
+
+function Notice({ notice, onClose }) { return <div className={`mb-5 flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`} role="status"><span className="flex items-center gap-2">{notice.type === 'success' && <CheckCircle2 size={17} />}{notice.message}</span><button type="button" onClick={onClose} aria-label="Dismiss notification"><X size={16} /></button></div> }
