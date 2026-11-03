@@ -1,7 +1,15 @@
 import axios from 'axios'
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+
+if (import.meta.env.PROD && !configuredApiBaseUrl) {
+  throw new Error('VITE_API_BASE_URL must be configured for the production frontend build.')
+}
+
+const apiBaseUrl = configuredApiBaseUrl || '/api/v1'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: apiBaseUrl,
   timeout: 10000,
   headers: {
     Accept: 'application/json',

@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
+require_relative "../lib/cors_middleware"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -28,5 +29,9 @@ module SalaryManagementSystem
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Allow the Vercel frontend to call the API without adding a third-party
+    # dependency. The middleware only emits CORS headers for FRONTEND_URL.
+    config.middleware.insert_before 0, CorsMiddleware
   end
 end
