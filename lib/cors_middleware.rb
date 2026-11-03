@@ -10,10 +10,10 @@ class CorsMiddleware
     origin = env["HTTP_ORIGIN"]
     return @app.call(env) unless allowed_origin?(origin)
 
-    return [204, cors_headers(origin), []] if env["REQUEST_METHOD"] == "OPTIONS"
+    return [ 204, cors_headers(origin), [] ] if env["REQUEST_METHOD"] == "OPTIONS"
 
     status, headers, body = @app.call(env)
-    [status, headers.merge(cors_headers(origin)), body]
+    [ status, headers.merge(cors_headers(origin)), body ]
   end
 
   private
